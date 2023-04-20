@@ -38,10 +38,25 @@ fn integrate<F: Fn( Vec<f32>, Vec<[f32;2]>,[f32;2], f32) ->[f32;2] >(
     planet_masses: Vec<f32>,
     g:f32
 ) -> State {
-    let acc = f(planet_masses, planet_location, [state.x, state.y],g);
+    //let acc = f(planet_masses, planet_location, [state.x, state.y],g);
+    let mut k1 = f(planet_masses.clone(), planet_location.clone(), [state.x, state.y],g);
+    let mut k2 = f(planet_masses.clone(), planet_location.clone(), [state.x+ dt*k1[0]/2.0, state.y + dt*k1[1]/2.0],g);
+    let mut k3 = f(planet_masses.clone(), planet_location.clone(), [state.x+ dt*k2[0]/2.0, state.y + dt*k2[1]/2.0],g);
+    let mut k4 = f(planet_masses.clone(), planet_location.clone(), [state.x+ dt*k3[0], state.y + dt*k3[1]],g);
+    let mut acc = [0.0;2];
+    acc = [(k1[0]+ 2.0*k2[0]+2.0*k3[0]+ k4[0])/6.0,(k1[1]+ 2.0*k2[1]+2.0*k3[1]+ k4[1])/6.0];
+    k1 = [state.vx, state.vy];
+    k2 =  [state.vx+ dt*k1[0]/2.0, state.vy + dt*k1[1]/2.0];
+    k3 =[state.vx+ dt*k2[0]/2.0, state.vy + dt*k2[1]/2.0];
+    k4 = [state.vx+ dt*k3[0], state.vy + dt*k3[1]];
+
+    let mut vel = [0.0; 2];
+    
+    vel  = [(k1[0]+ 2.0*k2[0]+2.0*k3[0]+ k4[0])/6.0,(k1[1]+ 2.0*k2[1]+2.0*k3[1]+ k4[1])/6.0];
+
     State {
-        x: state.x + dt*state.vx,
-        y: state.y + dt*state.vy,
+        x: state.x + dt*vel[0],
+        y: state.y + dt*vel[1],
         vx: state.vx + dt*acc[0],
         vy: state.vy + dt*acc[1],
     }
@@ -52,6 +67,7 @@ struct State {
     y: f32,
     vx: f32,
     vy: f32,
+
 }
 
 impl Copy for State { }
@@ -68,8 +84,8 @@ fn main() -> Result<(), String> {
     let g_const = 1000.0;
 
     
-    let n_time_steps = 100000;
-    let dt = 0.001;
+    let n_time_steps = 1000000;
+    let dt = 0.0001;
     let mut state = State{x:100.0, y: 0.0, vx:0.0, vy:5.0};
     let mut velocities = vec![[0.0,0.0];n_time_steps];
     let mut positions = vec![[0.0,0.0];n_time_steps];
@@ -97,8 +113,11 @@ fn main() -> Result<(), String> {
         println!("{} {} {}",(state.x*10.0), (state.y*10.0) as i32, state.x.powf(2.0)+state.y.powf(2.0));
         canvas.set_draw_color(Color::RGB(100, 100, 100));
 
-        canvas.fill_rect(Rect::new((state.x+400.0) as i32,(state.y +300.0)as i32, 10, 10) );
-        canvas.present();
+        canvas.fill_rect(Rect::new((state.x+400.0) as i32,(state.y +300.0)as i32, 1, 1) );
+        if i%10000 == 0{
+            canvas.present();
+
+        }
 
     }
     
