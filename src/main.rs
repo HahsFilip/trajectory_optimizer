@@ -92,14 +92,26 @@ impl Clone for State {
         *self
     }
 }
+trait Controls {
+    fn accelerate(&mut self,value: f32);
+}
 
+impl Controls for State{
+    fn accelerate(&mut self, value: f32){
+       let direction = (self.vx.powf(2.0) + self.vy.powf(2.0)).powf(0.5);
+       let x_dir = self.vx/direction;
+       let y_dir = self.vy/direction;
+       self.vx = self.vx + value*x_dir;
+       self.vy = self.vy + value*y_dir;
+    }
+}
 fn main() -> Result<(), String> {
     let planet_masses = vec![10.0;1];
     let planet_location = vec![[0.0, 0.0];1];
     let g_const = 1000.0;
 
     
-    let n_time_steps = 100000;
+    let n_time_steps = 1000000;
     let dt = 0.001;
     let mut state = State{x:100.0, y: 0.0, vx:0.0, vy:5.0};
     let mut velocities = vec![[0.0,0.0];n_time_steps];
@@ -125,11 +137,14 @@ fn main() -> Result<(), String> {
         canvas.set_draw_color(Color::RGB(0, 0, 0));
 
         state = integrate(calculate_accelerations, state, dt, planet_location.clone(), planet_masses.clone(), g_const);
-        println!("{} {} {}",(state.x*10.0), (state.y*10.0) as i32, state.x.powf(2.0)+state.y.powf(2.0));
+      //  println!("{} {} {}",(state.x*10.0), (state.y*10.0) as i32, state.x.powf(2.0)+state.y.powf(2.0));
         canvas.set_draw_color(Color::RGB(100, 100, 100));
 
         canvas.fill_rect(Rect::new((state.x+400.0) as i32,(state.y +300.0)as i32, 1, 1) );
-        if i%1000 == 0{
+       if i % 100000 == 0{
+        state.accelerate(1.0);
+       }
+        if i % 1000 == 0{
             canvas.present();
 
         }
