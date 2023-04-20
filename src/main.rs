@@ -109,14 +109,14 @@ fn main() -> Result<(), String> {
     let planet_masses = vec![10.0;1];
     let planet_location = vec![[0.0, 0.0];1];
     let g_const = 1000.0;
-    let n_control_steps = 100;
+    const n_control_steps: usize= 100;
     let goal = [300.0, 300.0];
     let vx0 = 0.0;
     let vy0 = 5.0;
     let x0 = 100.0;
     let y0 = 0.0;
     let mut control_array = [0.0; n_control_steps];
-    let mut adj_goal_array = [0.0: n_control_steps];
+    let mut adj_goal_array = [0.0; n_control_steps];
     let n_time_steps = 1000000;
     let interval = n_time_steps/n_control_steps;
     let dt = 0.001;
@@ -141,6 +141,8 @@ fn main() -> Result<(), String> {
     canvas.set_draw_color(Color::RGB(100, 100, 100));
     for _ in 1..10{  
         let mut k = 0;
+        state = State{x:x0, y:y0, vx:vx0, vy:vy0};
+
         for i in 0..n_time_steps{
             canvas.set_draw_color(Color::RGB(0, 0, 0));
     
@@ -156,7 +158,7 @@ fn main() -> Result<(), String> {
            
     
         } 
-        let delta_goal = (state.x-goal[0]).powf(2.0) + (state.y-goal[1]).powf(2.0)
+        let delta_goal = (state.x-goal[0]).powf(2.0) + (state.y-goal[1]).powf(2.0);
         for j in 0..n_control_steps{
 
 
