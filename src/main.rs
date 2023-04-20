@@ -109,11 +109,18 @@ fn main() -> Result<(), String> {
     let planet_masses = vec![10.0;1];
     let planet_location = vec![[0.0, 0.0];1];
     let g_const = 1000.0;
-
-    
+    let n_control_steps = 100;
+    let goal = [300.0, 300.0];
+    let vx0 = 0.0;
+    let vy0 = 5.0;
+    let x0 = 100.0;
+    let y0 = 0.0;
+    let mut control_array = [0.0; n_control_steps];
+    let mut adj_goal_array = [0.0: n_control_steps];
     let n_time_steps = 1000000;
+    let interval = n_time_steps/n_control_steps;
     let dt = 0.001;
-    let mut state = State{x:100.0, y: 0.0, vx:0.0, vy:5.0};
+    let mut state = State{x:x0, y:y0, vx:vx0, vy:vy0};
     let mut velocities = vec![[0.0,0.0];n_time_steps];
     let mut positions = vec![[0.0,0.0];n_time_steps];
     
@@ -132,25 +139,45 @@ fn main() -> Result<(), String> {
     canvas.set_draw_color(Color::RGB(0, 0, 0));
     canvas.present();
     canvas.set_draw_color(Color::RGB(100, 100, 100));
-
-    for i in 0..n_time_steps{
-        canvas.set_draw_color(Color::RGB(0, 0, 0));
-
-        state = integrate(calculate_accelerations, state, dt, planet_location.clone(), planet_masses.clone(), g_const);
-      //  println!("{} {} {}",(state.x*10.0), (state.y*10.0) as i32, state.x.powf(2.0)+state.y.powf(2.0));
-        canvas.set_draw_color(Color::RGB(100, 100, 100));
-
-        canvas.fill_rect(Rect::new((state.x+400.0) as i32,(state.y +300.0)as i32, 1, 1) );
-       if i % 100000 == 0{
-        state.accelerate(1.0);
-       }
-        if i % 1000 == 0{
-            canvas.present();
-
-        }
-
-    }
+    for _ in 1..10{  
+        let mut k = 0;
+        for i in 0..n_time_steps{
+            canvas.set_draw_color(Color::RGB(0, 0, 0));
     
+            state = integrate(calculate_accelerations, state, dt, planet_location.clone(), planet_masses.clone(), g_const);
+          //  println!("{} {} {}",(state.x*10.0), (state.y*10.0) as i32, state.x.powf(2.0)+state.y.powf(2.0));
+            canvas.set_draw_color(Color::RGB(100, 100, 100));
+    
+            canvas.fill_rect(Rect::new((state.x+400.0) as i32,(state.y +300.0)as i32, 1, 1) );
+           if i % interval == 0{
+            state.accelerate(control_array[k]);
+            k +=1;
+           }
+           
+    
+        } 
+        let delta_goal = (state.x-goal[0]).powf(2.0) + (state.y-goal[1]).powf(2.0)
+        for j in 0..n_control_steps{
+
+
+       state = State{x:x0, y:y0, vx:vx0, vy:vy0};
+        for i in 0..n_time_steps{
+            canvas.set_draw_color(Color::RGB(0, 0, 0));
+    
+            state = integrate(calculate_accelerations, state, dt, planet_location.clone(), planet_masses.clone(), g_const);
+          //  println!("{} {} {}",(state.x*10.0), (state.y*10.0) as i32, state.x.powf(2.0)+state.y.powf(2.0));
+            canvas.set_draw_color(Color::RGB(100, 100, 100));
+    
+            canvas.fill_rect(Rect::new((state.x+400.0) as i32,(state.y +300.0)as i32, 1, 1) );
+           if i % interval == 0{
+            state.accelerate(0.01);
+           }
+           adj_goal_array[j] =delta_goal-((state.x-goal[0]).powf(2.0) + (state.y-goal[1]).powf(2.0));
+    
+        }
+            
+        }}
+
 
     println!("Hello, world!");
     Ok(())
